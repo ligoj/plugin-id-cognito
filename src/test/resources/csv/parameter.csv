@@ -1,0 +1,9 @@
+id;data;mandatory;secured;type;owner.id
+service:id:group;;false;false;TEXT;service:id
+service:id:ou;;false;false;TEXT;service:id
+service:id:parent-group;;false;false;TEXT;service:id
+service:id:uid-pattern;;false;false;TEXT;service:id
+service:id:cognito:access-key-id;{"pattern":"\\w{16,128}"};true;false;TEXT;service:id:cognito
+service:id:cognito:secret-access-key;{"pattern":".{20,}"};true;true;TEXT;service:id:cognito
+service:id:cognito:region;;true;false;TEXT;service:id:cognito
+service:id:cognito:pool-id;;true;false;TEXT;service:id:cognito

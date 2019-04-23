@@ -1,0 +1,4 @@
+id;name;refined.id;mode;uiClasses;tag;tagUiClasses
+service:id;Identity;;CREATE;fa fa-key;functional;fa fa-suitcase
+service:id:cognito;AWS Cognito;service:id;;;;
+service:id:cognito:test;AWS Cognito Test;service:id;;;;

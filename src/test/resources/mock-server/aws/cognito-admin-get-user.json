@@ -1,0 +1,25 @@
+{
+    "Username": "00000000-0000-0000-0000-00000000", 
+    "Enabled": true, 
+    "UserStatus": "CONFIRMED", 
+    "UserCreateDate": 1555068001.241, 
+    "UserAttributes": [
+        {
+            "Name": "sub", 
+            "Value": "00000000-0000-0000-0000-00000000"
+        }, 
+        {
+            "Name": "email_verified", 
+            "Value": "true"
+        }, 
+        {
+            "Name": "nickname", 
+            "Value": "john"
+        }, 
+        {
+            "Name": "email", 
+            "Value": "john.doe@sample.com"
+        }
+    ], 
+    "UserLastModifiedDate": 1555071906.132
+}

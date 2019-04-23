@@ -1,0 +1,5 @@
+parameter.id;data;node.id
+service:id:cognito:access-key-id;12345678901234567890;service:id:cognito:test
+service:id:cognito:secret-access-key;abcdefghtiklmnopqrstuvwxyz;service:id:cognito:test
+service:id:cognito:region;eu-west-1;service:id:cognito:test
+service:id:cognito:pool-id;eu-west-1_12345678;service:id:cognito:test
