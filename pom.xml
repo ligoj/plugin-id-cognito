@@ -11,7 +11,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-id-cognito</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin ID - AWS Cognito</name>
 	<url>https://github.com/ligoj/plugin-id-cognito</url>
