@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.ligoj.api</groupId>
 		<artifactId>plugin-parent</artifactId>
-		<version>3.1.8</version>
+		<version>3.2.2</version>
 		<relativePath />
 	</parent>
 
@@ -27,19 +28,12 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.ligoj.api</groupId>
-			<artifactId>plugin-api-test</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.ligoj.api</groupId>
-					<artifactId>plugin-iam-empty</artifactId>
-				</exclusion>
-			</exclusions>
+			<artifactId>plugin-iam-empty</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.ligoj.plugin</groupId>
 			<artifactId>plugin-id</artifactId>
-			<version>[1.3.3,1.4.0)</version>
+			<version>[1.4.1,1.5.0)</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

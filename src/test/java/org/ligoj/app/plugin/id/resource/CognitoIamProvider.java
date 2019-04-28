@@ -11,11 +11,13 @@ import org.ligoj.app.iam.IamConfiguration;
 import org.ligoj.app.iam.IamProvider;
 import org.ligoj.app.plugin.id.cognito.resource.CognitoPluginResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 
 /**
  * Cognito IAM provider.
  */
+@Order(50)
 public class CognitoIamProvider implements IamProvider {
 
 	@Autowired

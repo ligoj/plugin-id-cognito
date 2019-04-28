@@ -71,8 +71,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 				StandardCharsets.UTF_8.name());
 		// Invalidate cache
 		cacheManager.getCache("container-scopes").clear();
-		cacheManager.getCache("id-cognito-data").clear();
-		cacheManager.getCache("id-cognito-configuration").clear();
+		cacheManager.getCache("id-configuration").clear();
 		cacheManager.getCache("curl-tokens").clear();
 		cacheManager.getCache("node-parameters").clear();
 	}
@@ -212,7 +211,8 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		repository.setPassword(null, null);
 		repository.setPassword(null, null, null);
 		repository.getPeopleInternalBaseDn();
-		Assertions.assertNull(repository.getCompanyRepository());
+		Assertions.assertNotNull(repository.getCompanyRepository());
+		Assertions.assertNotNull(repository.getGroupRepository());
 	}
 
 	@Test
@@ -264,6 +264,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		configuration.put(CognitoPluginResource.CONF_HOST, MOCK_URL);
 		final CognitoPluginResource resource = new CognitoPluginResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		resource.self = resource;
 		for (int counter = 0; counter < responses.length; counter++) {
 			httpServer.stubFor(post(urlEqualTo("/mock")).inScenario("Retry Scenario")
 					.whenScenarioStateIs(counter == 0 ? "Started" : ("State" + counter))

@@ -8,6 +8,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -18,14 +19,16 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.commons.beanutils.BeanUtilsBean2;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.iam.CompanyOrg;
 import org.ligoj.app.iam.GroupOrg;
 import org.ligoj.app.iam.ICompanyRepository;
+import org.ligoj.app.iam.IGroupRepository;
 import org.ligoj.app.iam.IUserRepository;
 import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.iam.empty.EmptyCompanyRepository;
+import org.ligoj.app.iam.empty.EmptyGroupRepository;
 import org.ligoj.app.plugin.id.cognito.auth.AWS4SignatureQuery;
 import org.ligoj.app.plugin.id.cognito.auth.AWS4SignatureQuery.AWS4SignatureQueryBuilder;
 import org.ligoj.app.plugin.id.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
@@ -38,6 +41,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import jodd.bean.BeanUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,17 +53,27 @@ import lombok.extern.slf4j.Slf4j;
 public class UserCognitoRepository implements IUserRepository {
 
 	/**
+	 * Default {@link IGroupRepository}.
+	 */
+	private static final IGroupRepository GROUP_REPOSITORY = new EmptyGroupRepository();
+
+	/**
+	 * Default {@link ICompanyRepository}.
+	 */
+	private static final ICompanyRepository COMPANY_REPOSITORY = new EmptyCompanyRepository();
+
+	/**
 	 * User comparator for ordering
 	 */
 	public static final Comparator<UserOrg> DEFAULT_COMPARATOR = new LoginComparator();
 
-	private static Map<String, BiFunction<UserOrg, String, Boolean>> mapper = new HashMap<>();
+	private static final Map<String, BiFunction<UserOrg, String, Boolean>> SEARCH_MAPPER = new HashMap<>();
 	static {
-		mapper.put("mails", (u, v) -> u.getMails().contains(v));
-		mapper.put("mail", mapper.get("mails"));
+		SEARCH_MAPPER.put("mails", (u, v) -> u.getMails().contains(v));
+		SEARCH_MAPPER.put("mail", SEARCH_MAPPER.get("mails"));
 	}
 
-	private BeanUtilsBean beanutils = BeanUtilsBean2.getInstance();
+	private BeanUtil beanutils = BeanUtil.declaredSilent;
 
 	/**
 	 * Base DN for internal people. Should be a subset of people, so including {@link #peopleBaseDn}
@@ -168,14 +182,9 @@ public class UserCognitoRepository implements IUserRepository {
 	public List<UserOrg> findAllBy(final String attribute, final String value) {
 		// Not yet implemented
 		return findAll().values().stream()
-				.filter(u -> Optional.ofNullable(mapper.get(attribute)).map(f -> f.apply(u, value)).orElseGet(() -> {
-					try {
-						return value.equalsIgnoreCase(String.valueOf(beanutils.getProperty(u, attribute)));
-					} catch (ReflectiveOperationException e) {
-						// Ignore this error
-						return false;
-					}
-				})).collect(Collectors.toList());
+				.filter(u -> Optional.ofNullable(SEARCH_MAPPER.get(attribute)).map(f -> f.apply(u, value)).orElseGet(
+						() -> value.equalsIgnoreCase(String.valueOf((Object) beanutils.getProperty(u, attribute)))))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -187,9 +196,11 @@ public class UserCognitoRepository implements IUserRepository {
 	@Override
 	public Map<String, UserOrg> findAllNoCache(final Map<String, GroupOrg> groups) {
 		// Not yet implemented
-		return newRequest("ListUsers", "{\"Limit\": 60,\"UserPoolId\": \"" + poolId + "\"}", CognitoListUsers.class,
-				l -> l.getUsers().stream().map(this::toUser)
-						.collect(Collectors.toMap(UserOrg::getId, Function.identity())));
+		return ObjectUtils.defaultIfNull(
+				newRequest("ListUsers", "{\"Limit\": 60,\"UserPoolId\": \"" + poolId + "\"}", CognitoListUsers.class,
+						l -> l.getUsers().stream().map(this::toUser)
+								.collect(Collectors.toMap(UserOrg::getId, Function.identity()))),
+				Collections.emptyMap());
 	}
 
 	@Override
@@ -219,7 +230,7 @@ public class UserCognitoRepository implements IUserRepository {
 		user.setFirstName(attr.getOrDefault("given_name", attr.getOrDefault("name", attr.get("nickname"))));
 		user.setLastName(attr.get("family_name"));
 		user.setLocalId(entity.getUsername());
-		user.setId(attr.get("nickname"));
+		user.setId(attr.getOrDefault("nickname", attr.get("email")));
 		user.setCompany(poolName);
 		user.setSecured("true".equals(attr.get("email_verified")));
 		user.setLocked(entity.isEnabled() ? null : entity.getLastModifiedDate());
@@ -307,9 +318,15 @@ public class UserCognitoRepository implements IUserRepository {
 	}
 
 	@Override
+	public IGroupRepository getGroupRepository() {
+		// Not yet implemented
+		return GROUP_REPOSITORY;
+	}
+
+	@Override
 	public ICompanyRepository getCompanyRepository() {
 		// Not yet implemented
-		return null;
+		return COMPANY_REPOSITORY;
 	}
 
 	/**

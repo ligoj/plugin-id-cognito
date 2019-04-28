@@ -3,28 +3,22 @@
  */
 package org.ligoj.app.plugin.id.cognito.resource;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import javax.cache.annotation.CacheKey;
-import javax.cache.annotation.CacheResult;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.ligoj.app.iam.IamConfiguration;
 import org.ligoj.app.plugin.id.cognito.dao.UserCognitoRepository;
 import org.ligoj.app.plugin.id.resource.AbstractPluginIdResource;
 import org.ligoj.app.plugin.id.resource.IdentityResource;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,20 +78,11 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	public static final String PARAMETER_POOL_ID = KEY + ":pool-id";
 
 	@Autowired
-	protected ApplicationContext context;
-
-	@Autowired
 	@Getter
 	protected CognitoPluginResource self;
 
 	@Autowired
 	protected ConfigurationResource configuration;
-
-	/**
-	 * Available node configurations. Key is the node identifier.
-	 */
-	@Getter(value = AccessLevel.PROTECTED)
-	private Map<String, IamConfiguration> nodeConfigurations = new HashMap<>();
 
 	@Override
 	public boolean accept(final Authentication authentication, final String node) {
@@ -127,33 +112,13 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 		return ((UserCognitoRepository) self.getConfiguration(node).getUserRepository()).refreshPoolName() != null;
 	}
 
-	@Override
-	public IamConfiguration getConfiguration(final String node) {
-		self.ensureCachedConfiguration(node);
-		return self.getNodeConfigurations().get(node);
-	}
-
-	@CacheResult(cacheName = "id-cognito-configuration")
-	public boolean ensureCachedConfiguration(@CacheKey final String node) {
-		refreshConfiguration(node);
-		return true;
-	}
-
-	private IamConfiguration refreshConfiguration(final String node) {
-		return nodeConfigurations.compute(node, (n, m) -> {
-			final IamConfiguration iam = new IamConfiguration();
-			iam.setUserRepository(getUserRepository(node));
-			return iam;
-		});
-	}
-
 	/**
 	 * Build a user Cognito repository from the given node.
 	 *
 	 * @param node The node to request.
 	 * @return The {@link UserCognitoRepository} instance. Cache is not involved.
 	 */
-	private UserCognitoRepository getUserRepository(final String node) {
+	protected UserCognitoRepository getUserRepository(final String node) {
 		log.info("Build Cognito template for node {}", node);
 
 		// A new repository instance
@@ -181,4 +146,5 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 		repository.refreshPoolName();
 		return repository;
 	}
+
 }
