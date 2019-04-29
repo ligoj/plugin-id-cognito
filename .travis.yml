@@ -16,6 +16,7 @@ cache:
     - $HOME/.cache
     - $HOME/maven
 jdk: openjdk11
+dist: xenial
 env: 
   - TARGET=BUILD
 branches:
