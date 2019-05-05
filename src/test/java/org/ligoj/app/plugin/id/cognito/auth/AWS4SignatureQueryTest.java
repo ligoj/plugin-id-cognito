@@ -49,7 +49,7 @@ public class AWS4SignatureQueryTest {
 
 	@Test
 	public void builder() {
-		AWS4SignatureQueryBuilder builder = AWS4SignatureQuery.builder();
+		var builder = AWS4SignatureQuery.builder();
 		builder.toString();
 		builder = builderCommon(builder);
 		builder = builder.method("GET");
@@ -59,16 +59,13 @@ public class AWS4SignatureQueryTest {
 
 	@Test
 	public void builderNullMethod() {
-		AWS4SignatureQueryBuilder builder = AWS4SignatureQuery.builder();
+		final var builder = AWS4SignatureQuery.builder();
 		builder.toString();
-		builder = builderCommon(builder);
-		AWS4SignatureQueryBuilder builder0 = builder.method(null);
-		builder0.toString();
-		Assertions.assertThrows(NullPointerException.class, () -> builder0.build());
+		Assertions.assertThrows(NullPointerException.class,()-> builderCommon(builder).method(null));
 	}
 
 	private AWS4SignatureQueryBuilder builderCommon(AWS4SignatureQueryBuilder builderParam) {
-		AWS4SignatureQueryBuilder builder = builderParam;
+		var builder = builderParam;
 		builder.toString();
 		builder = builder.path("/");
 		builder.toString();
