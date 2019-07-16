@@ -139,6 +139,8 @@ public class UserCognitoRepository implements IUserRepository {
 	 * @param body   The Cognito's request.
 	 * @param clazz  The target object class.
 	 * @param mapper The function mapping to the target object.
+	 * @param <T>    Response type built from the JSON and to converter with the mapper.
+	 * @param <U>    Return type.
 	 * @return The object mapped from the HTTP response.
 	 */
 	public <T, U> U newRequest(final String action, final String body, final Class<T> clazz,

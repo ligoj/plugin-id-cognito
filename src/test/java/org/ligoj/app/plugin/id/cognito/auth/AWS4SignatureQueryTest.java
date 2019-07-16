@@ -15,53 +15,13 @@ import org.ligoj.app.plugin.id.cognito.auth.AWS4SignatureQuery.AWS4SignatureQuer
 public class AWS4SignatureQueryTest {
 
 	@Test
-	public void builderNoHost() {
-		Assertions.assertThrows(NullPointerException.class, () -> AWS4SignatureQuery.builder().build());
-	}
-
-	@Test
-	public void builderNoPath() {
-		Assertions.assertThrows(NullPointerException.class, () -> AWS4SignatureQuery.builder().host("myhost").build());
-	}
-
-	@Test
-	public void builderNoService() {
-		Assertions.assertThrows(NullPointerException.class, () -> AWS4SignatureQuery.builder().host("myhost").path("/").build());
-	}
-
-	@Test
-	public void builderNoRegion() {
-		Assertions.assertThrows(NullPointerException.class,
-				() -> AWS4SignatureQuery.builder().host("myhost").path("/").service("ec2").build());
-	}
-
-	@Test
-	public void builderNoAccessKey() {
-		Assertions.assertThrows(NullPointerException.class,
-				() -> AWS4SignatureQuery.builder().host("myhost").path("/").service("ec2").region("eu-west-1").build());
-	}
-
-	@Test
-	public void builderNoSecretKey() {
-		Assertions.assertThrows(NullPointerException.class, () -> AWS4SignatureQuery.builder().host("myhost").path("/").service("ec2")
-				.region("eu-west-1").accessKey("--access-key--").build());
-	}
-
-	@Test
-	public void builder() {
-		var builder = AWS4SignatureQuery.builder();
+	void builder() {
+		AWS4SignatureQueryBuilder builder = AWS4SignatureQuery.builder();
 		builder.toString();
 		builder = builderCommon(builder);
 		builder = builder.method("GET");
 		builder.toString();
 		Assertions.assertEquals("host", builder.service("s3").build().getHost());
-	}
-
-	@Test
-	public void builderNullMethod() {
-		final var builder = AWS4SignatureQuery.builder();
-		builder.toString();
-		Assertions.assertThrows(NullPointerException.class,()-> builderCommon(builder).method(null));
 	}
 
 	private AWS4SignatureQueryBuilder builderCommon(AWS4SignatureQueryBuilder builderParam) {

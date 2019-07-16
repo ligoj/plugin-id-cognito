@@ -100,7 +100,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void checkStatusFailed() throws IOException {
+	public void checkStatusFailed() {
 		final Map<String, String> parameters = new HashMap<>();
 		parameters.put(CognitoPluginResource.PARAMETER_ACCESS_KEY_ID, "12345678901234567890");
 		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "abcdefghtiklmnopqrstuvwxyz");
@@ -129,7 +129,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void authenticateInvalidPayload() throws IOException {
+	public void authenticateInvalidPayload() {
 		final Authentication authentication = new UsernamePasswordAuthenticationToken(
 				"00000000-0000-0000-0000-00000000", "-");
 		Assertions.assertThrows(BadCredentialsException.class,
@@ -137,7 +137,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void authenticateNoName() throws IOException {
+	public void authenticateNoName() {
 		final Authentication authentication = new UsernamePasswordAuthenticationToken(null, "-");
 		Assertions.assertThrows(BadCredentialsException.class,
 				() -> mockAws("cognito-describe-user-pool.json", "cognito-admin-get-user.json")
@@ -145,7 +145,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	}
 
 	@Test
-	public void authenticateNoCred() throws IOException {
+	public void authenticateNoCred() {
 		final Authentication authentication = new UsernamePasswordAuthenticationToken(
 				"00000000-0000-0000-0000-00000000", " ");
 		Assertions.assertThrows(BadCredentialsException.class,
