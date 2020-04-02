@@ -145,8 +145,8 @@ public class UserCognitoRepository implements IUserRepository {
 	 */
 	public <T, U> U newRequest(final String action, final String body, final Class<T> clazz,
 			final Function<T, U> mapper) {
-		final CurlRequest request = newRequest(action, body);
-		try (CurlProcessor curl = new CurlProcessor()) {
+		final var request = newRequest(action, body);
+		try (var curl = new CurlProcessor()) {
 			if (curl.process(request)) {
 				return mapper.apply(objectMapper.readValue(request.getResponse(), clazz));
 			}
@@ -167,13 +167,13 @@ public class UserCognitoRepository implements IUserRepository {
 	public CurlRequest newRequest(final String action, final String body) {
 		final AWS4SignatureQueryBuilder builder = AWS4SignatureQuery.builder().service("cognito-idp")
 				.body("&Version=2016-04-18");
-		final Map<String, String> headers = new HashMap<>();
+		final var headers = new HashMap<String, String>();
 		headers.put("x-amz-target", "AWSCognitoIdentityProviderService." + action);
 		headers.put("Content-Type", "application/x-amz-json-1.1");
 		final AWS4SignatureQuery query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/")
 				.headers(headers).body(body).host(URI.create(url).getHost()).build();
-		final String authorization = signer.computeSignature(query);
-		final CurlRequest request = new CurlRequest(query.getMethod(), url, query.getBody());
+		final var authorization = signer.computeSignature(query);
+		final var request = new CurlRequest(query.getMethod(), url, query.getBody());
 		request.getHeaders().putAll(query.getHeaders());
 		request.getHeaders().put("Authorization", authorization);
 		request.setSaveResponse(true);
@@ -225,9 +225,9 @@ public class UserCognitoRepository implements IUserRepository {
 	 * @return The corresponding {@link UserOrg} object.
 	 */
 	private UserOrg toUser(final AbstractCognitoUser entity) {
-		final Map<String, String> attr = entity.getAttributes().stream()
+		final var attr = entity.getAttributes().stream()
 				.collect(Collectors.toMap(CognitoAttribute::getName, CognitoAttribute::getValue));
-		final UserOrg user = new UserOrg();
+		final var user = new UserOrg();
 		user.setDn(buildDn(entity.getUsername(), "pool=" + poolId));
 		user.setFirstName(attr.getOrDefault("given_name", attr.getOrDefault("name", attr.get("nickname"))));
 		user.setLastName(attr.get("family_name"));
