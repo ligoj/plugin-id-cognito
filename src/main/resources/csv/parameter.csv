@@ -1,6 +1,6 @@
 id;owner.id;data;mandatory;type;secured
 service:id:cognito:access-key-id;service:id:cognito;{"pattern":"\\w{16,128}"};true;TEXT
 service:id:cognito:secret-access-key;service:id:cognito;{"pattern":".{20,}"};true;TEXT;true
-service:id:cognito:region;service:id:cognito;;true;TEXT
-service:id:cognito:pool-id;service:id:cognito;;true;TEXT
+service:id:cognito:region;service:id:cognito;{"pattern":"\\w{6,}"};true;TEXT
+service:id:cognito:pool-id;service:id:cognito;{"pattern":"\\w{6,}_[A-Za-z0-9]{8,}"};true;TEXT
 service:id:cognito:user-attribute-id;service:id:cognito;;false;TEXT
