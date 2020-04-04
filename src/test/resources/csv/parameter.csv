@@ -7,3 +7,4 @@ service:id:cognito:access-key-id;{"pattern":"\\w{16,128}"};true;false;TEXT;servi
 service:id:cognito:secret-access-key;{"pattern":".{20,}"};true;true;TEXT;service:id:cognito
 service:id:cognito:region;;true;false;TEXT;service:id:cognito
 service:id:cognito:pool-id;;true;false;TEXT;service:id:cognito
+service:id:cognito:user-attribute-id;;false;false;TEXT;service:id:cognito

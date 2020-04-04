@@ -113,6 +113,12 @@ public class UserCognitoRepository implements IUserRepository {
 
 	private String poolName;
 
+	/**
+	 * Cognito user attribute to use as identifier.
+	 */
+	@Setter
+	private String attributeId;
+
 	@Autowired
 	private AWS4SignerCognitoForAuthorizationHeader signer = new AWS4SignerCognitoForAuthorizationHeader();
 
@@ -232,7 +238,7 @@ public class UserCognitoRepository implements IUserRepository {
 		user.setFirstName(attr.getOrDefault("given_name", attr.getOrDefault("name", attr.get("nickname"))));
 		user.setLastName(attr.get("family_name"));
 		user.setLocalId(entity.getUsername());
-		user.setId(attr.getOrDefault("nickname", attr.get("email")));
+		user.setId(attr.getOrDefault(attributeId, attr.get("email")));
 		user.setCompany(poolName);
 		user.setSecured("true".equals(attr.get("email_verified")));
 		user.setLocked(entity.isEnabled() ? null : entity.getLastModifiedDate());
@@ -301,7 +307,7 @@ public class UserCognitoRepository implements IUserRepository {
 	@Override
 	public boolean authenticate(final String name, final String password) {
 		// "name" corresponds to the Cognito's "Username" property
-		return StringUtils.isNoneBlank(name) && StringUtils.isNoneBlank(password) && findByIdNoCache(name) != null;
+		return StringUtils.isNotBlank(name) && StringUtils.isNotBlank(password) && findByIdNoCache(name) != null;
 	}
 
 	@Override

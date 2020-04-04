@@ -77,6 +77,16 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	 */
 	public static final String PARAMETER_POOL_ID = KEY + ":pool-id";
 
+	/**
+	 * Cognito user attribute name to map as displayed user login.
+	 */
+	public static final String PARAMETER_ATTRIBUTE_ID = KEY + ":user-attribute-id";
+
+	/**
+	 * Cognito pool identifier.
+	 */
+	public static final String PARAMETER_LOGIN = KEY + ":pool-id";
+
 	@Autowired
 	@Getter
 	protected CognitoPluginResource self;
@@ -139,6 +149,7 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 		repository.setAccessKey(parameters.get(PARAMETER_ACCESS_KEY_ID));
 		repository.setSecretKey(parameters.get(PARAMETER_SECRET_ACCESS_KEY));
 		repository.setPoolId(parameters.get(PARAMETER_POOL_ID));
+		repository.setAttributeId(parameters.getOrDefault(PARAMETER_ATTRIBUTE_ID, "nickname"));
 		repository.setUrl(configuration.get(CONF_HOST, URL_COGNITO).replace("%s", region));
 
 		// Complete the bean

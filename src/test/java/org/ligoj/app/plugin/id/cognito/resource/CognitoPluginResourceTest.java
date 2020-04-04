@@ -20,11 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractServerTest;
-import org.ligoj.app.dao.ParameterRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Parameter;
 import org.ligoj.app.model.ParameterValue;
-import org.ligoj.app.plugin.id.resource.UserOrgResource;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -53,12 +51,6 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 
 	@Autowired
 	private ConfigurationResource configuration;
-
-	@Autowired
-	protected ParameterRepository parameterRepository;
-
-	@Autowired
-	protected UserOrgResource userResource;
 
 	@BeforeEach
 	public void prepareData() throws IOException {
@@ -159,6 +151,22 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		final var users = mockAws().getConfiguration("service:id:cognito:test").getUserRepository().findAll();
 		final var userOrg = users.get("john");
 		Assertions.assertEquals("john", userOrg.getId());
+		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
+		Assertions.assertEquals("john", userOrg.getFirstName());
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
+	}
+
+	@Test
+	public void findAllIdEmail() throws IOException {
+		final var value = new ParameterValue();
+		value.setData("email");
+		value.setParameter(em.find(Parameter.class, "service:id:cognito:user-attribute-id"));
+		value.setNode(em.find(Node.class, "service:id:cognito:test"));
+		em.persist(value);
+		
+		final var users = mockAws().getConfiguration("service:id:cognito:test").getUserRepository().findAll();
+		final var userOrg = users.get("john.doe@sample.com");
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
 		Assertions.assertEquals("john", userOrg.getFirstName());
 		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
