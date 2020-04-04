@@ -13,3 +13,5 @@
 [Ligoj](https://github.com/ligoj/ligoj) AWS Cognito identity plugin, and extending [Identity plugin](https://github.com/ligoj/plugin-id)
 
 Requires [IAM Node plugin](https://github.com/ligoj/plugin-iam-node) to select this node as reference for authentication.
+
+Required IAM Poilicy looks like [this](src/main/resources/META-INF/resources/webjars/service/id/cognito/aws-policy.json)
