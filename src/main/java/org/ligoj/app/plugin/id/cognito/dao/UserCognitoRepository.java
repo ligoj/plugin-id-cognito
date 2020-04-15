@@ -73,7 +73,7 @@ public class UserCognitoRepository implements IUserRepository {
 		SEARCH_MAPPER.put("mail", SEARCH_MAPPER.get("mails"));
 	}
 
-	private BeanUtil beanutils = BeanUtil.declaredSilent;
+	private final BeanUtil beanutils = BeanUtil.declaredSilent;
 
 	/**
 	 * Base DN for internal people. Should be a subset of people, so including {@link #peopleBaseDn}
@@ -120,7 +120,7 @@ public class UserCognitoRepository implements IUserRepository {
 	private String attributeId;
 
 	@Autowired
-	private AWS4SignerCognitoForAuthorizationHeader signer = new AWS4SignerCognitoForAuthorizationHeader();
+	private final AWS4SignerCognitoForAuthorizationHeader signer = new AWS4SignerCognitoForAuthorizationHeader();
 
 	@Autowired
 	private ObjectMapperTrim objectMapper;
@@ -171,12 +171,12 @@ public class UserCognitoRepository implements IUserRepository {
 	 * @return The initialized request.
 	 */
 	public CurlRequest newRequest(final String action, final String body) {
-		final AWS4SignatureQueryBuilder builder = AWS4SignatureQuery.builder().service("cognito-idp")
+		final var builder = AWS4SignatureQuery.builder().service("cognito-idp")
 				.body("&Version=2016-04-18");
 		final var headers = new HashMap<String, String>();
 		headers.put("x-amz-target", "AWSCognitoIdentityProviderService." + action);
 		headers.put("Content-Type", "application/x-amz-json-1.1");
-		final AWS4SignatureQuery query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/")
+		final var query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/")
 				.headers(headers).body(body).host(URI.create(url).getHost()).build();
 		final var authorization = signer.computeSignature(query);
 		final var request = new CurlRequest(query.getMethod(), url, query.getBody());
@@ -238,11 +238,12 @@ public class UserCognitoRepository implements IUserRepository {
 		user.setFirstName(attr.getOrDefault("given_name", attr.getOrDefault("name", attr.get("nickname"))));
 		user.setLastName(attr.get("family_name"));
 		user.setLocalId(entity.getUsername());
-		user.setId(attr.getOrDefault(attributeId, attr.get("email")));
+		user.setId(StringUtils.lowerCase(
+				StringUtils.defaultString(attr.getOrDefault(attributeId, attr.get("email")), entity.getUsername())));
 		user.setCompany(poolName);
 		user.setSecured("true".equals(attr.get("email_verified")));
 		user.setLocked(entity.isEnabled() ? null : entity.getLastModifiedDate());
-		user.setMails(Arrays.asList(attr.get("email")));
+		user.setMails(Collections.singletonList(attr.get("email")));
 		return user;
 	}
 

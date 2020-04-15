@@ -143,8 +143,8 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	 */
 	private UserCognitoRepository getUserRepository(final Map<String, String> parameters) {
 		// A new repository instance
-		final UserCognitoRepository repository = new UserCognitoRepository();
-		final String region = parameters.get(PARAMETER_REGION);
+		final var repository = new UserCognitoRepository();
+		final var region = parameters.get(PARAMETER_REGION);
 		repository.setRegion(region);
 		repository.setAccessKey(parameters.get(PARAMETER_ACCESS_KEY_ID));
 		repository.setSecretKey(parameters.get(PARAMETER_SECRET_ACCESS_KEY));

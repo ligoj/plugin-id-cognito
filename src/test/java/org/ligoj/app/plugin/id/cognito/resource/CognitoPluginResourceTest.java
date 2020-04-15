@@ -255,7 +255,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	private CognitoPluginResource mockAws(String... responseFiles) throws IOException {
 		final var res = new ArrayList<>();
 		for (var file : responseFiles) {
-			res.add(IOUtils.toString(new ClassPathResource("mock-server/aws/" + file).getInputStream(), "UTF-8"));
+			res.add(IOUtils.toString(new ClassPathResource("mock-server/aws/" + file).getInputStream(), StandardCharsets.UTF_8));
 		}
 		return mockAws(HttpStatus.SC_OK, res.toArray(new String[0]));
 	}
