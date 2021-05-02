@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/ligoj/plugin-id-cognito.svg?branch=master)](https://travis-ci.org/ligoj/plugin-id-cognito)
 [![Build Status](https://circleci.com/gh/ligoj/plugin-id-cognito.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-id-cognito)
-[![Build Status](https://semaphoreci.com/api/v1/ligoj/plugin-id-cognito/branches/master/shields_badge.svg)](https://semaphoreci.com/ligoj/plugin-id-cognito)
 [![Build Status](https://ci.appveyor.com/api/projects/status/4w5268errknk4m2r/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-id-cognito/branch/master)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-id-cognito&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-id-cognito)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?metric=alert_status&project=org.ligoj.plugin:plugin-id-cognito)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-id-cognito)
