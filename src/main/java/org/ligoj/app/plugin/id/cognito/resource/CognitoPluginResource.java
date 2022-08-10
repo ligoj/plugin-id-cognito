@@ -128,6 +128,7 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	 * @param node The node to request.
 	 * @return The {@link UserCognitoRepository} instance. Cache is not involved.
 	 */
+	@Override
 	protected UserCognitoRepository getUserRepository(final String node) {
 		log.info("Build Cognito template for node {}", node);
 

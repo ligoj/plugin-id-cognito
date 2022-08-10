@@ -169,13 +169,12 @@ public class UserCognitoRepository implements IUserRepository {
 	 * @return The initialized request.
 	 */
 	public CurlRequest newRequest(final String action, final String body) {
-		final var builder = AWS4SignatureQuery.builder().service("cognito-idp")
-				.body("&Version=2016-04-18");
+		final var builder = AWS4SignatureQuery.builder().service("cognito-idp").body("&Version=2016-04-18");
 		final var headers = new HashMap<String, String>();
 		headers.put("x-amz-target", "AWSCognitoIdentityProviderService." + action);
 		headers.put("Content-Type", "application/x-amz-json-1.1");
-		final var query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/")
-				.headers(headers).body(body).host(URI.create(url).getHost()).build();
+		final var query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/").headers(headers)
+				.body(body).host(URI.create(url).getHost()).build();
 		final var authorization = signer.computeSignature(query);
 		final var request = new CurlRequest(query.getMethod(), url, query.getBody());
 		request.getHeaders().putAll(query.getHeaders());
@@ -184,13 +183,14 @@ public class UserCognitoRepository implements IUserRepository {
 		return request;
 	}
 
+	@SuppressWarnings("cast")
 	@Override
 	public List<UserOrg> findAllBy(final String attribute, final String value) {
 		// Not yet implemented
 		return findAll().values().stream()
 				.filter(u -> Optional.ofNullable(SEARCH_MAPPER.get(attribute)).map(f -> f.apply(u, value)).orElseGet(
 						() -> value.equalsIgnoreCase(String.valueOf((Object) beanutils.getProperty(u, attribute)))))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	@Override
