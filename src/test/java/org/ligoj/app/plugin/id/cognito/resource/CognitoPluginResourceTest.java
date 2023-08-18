@@ -11,10 +11,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,8 +54,8 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 
 	@BeforeEach
 	public void prepareData() throws IOException {
-		persistEntities("csv", new Class[] { Node.class, Parameter.class, ParameterValue.class },
-				StandardCharsets.UTF_8.name());
+		persistEntities("csv", new Class[]{Node.class, Parameter.class, ParameterValue.class},
+				StandardCharsets.UTF_8);
 		// Invalidate cache
 		cacheManager.getCache("container-scopes").clear();
 		cacheManager.getCache("id-configuration").clear();
@@ -79,7 +79,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	public void checkStatus() throws IOException {
 		final var parameters = new HashMap<String, String>();
 		parameters.put(CognitoPluginResource.PARAMETER_ACCESS_KEY_ID, "12345678901234567890");
-		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "abcdefghtiklmnopqrstuvwxyz");
+		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "secret_secret_secret");
 		parameters.put(CognitoPluginResource.PARAMETER_POOL_ID, "eu-west-1_12345678");
 		parameters.put(CognitoPluginResource.PARAMETER_REGION, "eu-west-1");
 		Assertions.assertTrue(mockAws("cognito-describe-user-pool.json", "cognito-describe-user-pool.json")
@@ -90,7 +90,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	public void checkStatusFailed() {
 		final var parameters = new HashMap<String, String>();
 		parameters.put(CognitoPluginResource.PARAMETER_ACCESS_KEY_ID, "12345678901234567890");
-		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "abcdefghtiklmnopqrstuvwxyz");
+		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "secret_secret_secret");
 		parameters.put(CognitoPluginResource.PARAMETER_POOL_ID, "eu-west-1_12345678");
 		parameters.put(CognitoPluginResource.PARAMETER_REGION, "eu-west-1");
 		Assertions.assertFalse(mockAws(400, "").checkStatus("service:id:cognito:test", parameters));
@@ -163,7 +163,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		value.setParameter(em.find(Parameter.class, "service:id:cognito:user-attribute-id"));
 		value.setNode(em.find(Node.class, "service:id:cognito:test"));
 		em.persist(value);
-		
+
 		final var users = mockAws().getConfiguration("service:id:cognito:test").getUserRepository().findAll();
 		final var userOrg = users.get("john.doe@sample.com");
 		Assertions.assertEquals("john.doe@sample.com", userOrg.getId());
@@ -257,7 +257,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		for (var file : responseFiles) {
 			res.add(IOUtils.toString(new ClassPathResource("mock-server/aws/" + file).getInputStream(), StandardCharsets.UTF_8));
 		}
-		return mockAws(HttpStatus.SC_OK, res.toArray(new String[0]));
+		return mockAws(HttpStatus.SC_OK);
 	}
 
 	private CognitoPluginResource mockAws(final int status, final String... responses) {
@@ -273,7 +273,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		}
 
 		// Coverage only
-		resource.getKey();
+		Assertions.assertEquals("service:id:cognito", resource.getKey());
 
 		httpServer.start();
 		return resource;

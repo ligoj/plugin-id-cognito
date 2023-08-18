@@ -5,15 +5,16 @@ package org.ligoj.app.plugin.id.cognito.resource;
 
 import java.util.Map;
 
-import javax.transaction.Transactional;
-import javax.transaction.Transactional.TxType;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional.TxType;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import org.ligoj.app.plugin.id.cognito.dao.UserCognitoRepository;
 import org.ligoj.app.plugin.id.resource.AbstractPluginIdResource;
 import org.ligoj.app.plugin.id.resource.IdentityResource;
+import org.ligoj.bootstrap.core.SpringUtils;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -78,7 +79,7 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	public static final String PARAMETER_POOL_ID = KEY + ":pool-id";
 
 	/**
-	 * Cognito user attribute name to map as displayed user login.
+	 * Cognito's user attribute name to map as displayed user login.
 	 */
 	public static final String PARAMETER_ATTRIBUTE_ID = KEY + ":user-attribute-id";
 
@@ -154,7 +155,7 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 		repository.setUrl(configuration.get(CONF_HOST, URL_COGNITO).replace("%s", region));
 
 		// Complete the bean
-		context.getAutowireCapableBeanFactory().autowireBean(repository);
+		SpringUtils.getApplicationContext().getAutowireCapableBeanFactory().autowireBean(repository);
 		repository.refreshPoolName();
 		return repository;
 	}
