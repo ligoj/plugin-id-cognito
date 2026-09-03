@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.dao;
+package org.ligoj.app.plugin.cognito.dao;
 
 import java.util.Date;
 import java.util.List;

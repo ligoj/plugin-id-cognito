@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.dao;
+package org.ligoj.app.plugin.cognito.dao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +13,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Cognito user pool.
- * @see <a href="https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_ListUsers.html">ListUsers</a>
+ * Cognito user data.
  */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CognitoListUsers {
+public class CognitoUser extends AbstractCognitoUser {
 
-	@JsonProperty("Users")
-	private List<CognitoUserFromList> users = new ArrayList<>();
+	@JsonProperty("UserAttributes")
+	private List<CognitoAttribute> attributes = new ArrayList<>();
 }

@@ -1,13 +1,13 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.auth;
-
-import java.util.HashMap;
-import java.util.Map;
+package org.ligoj.app.plugin.cognito.auth;
 
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Query used to sign AWS V4 API Query
@@ -33,7 +33,7 @@ public class AWS4SignatureQuery {
 	private String method = "POST";
 
 	/**
-	 * AWS service name : s3, ec2, ...
+	 * AWS service name: s3, ec2, ...
 	 */
 	private String service;
 	/**
@@ -45,7 +45,7 @@ public class AWS4SignatureQuery {
 	 */
 	private String accessKey;
 	/**
-	 * AWS Secret Key : I won't give my secret key for the javadoc :)
+	 * AWS Secret Key
 	 */
 	private String secretKey;
 	/**
@@ -62,7 +62,7 @@ public class AWS4SignatureQuery {
 	private String body;
 
 	/**
-	 * Builder class : used to initialize some attributes with default values
+	 * Builder class: used to initialize some attributes with default values
 	 */
 	public static class AWS4SignatureQueryBuilder {
 		/**
@@ -74,6 +74,15 @@ public class AWS4SignatureQuery {
 		 * query parameters
 		 */
 		private Map<String, String> queryParameters = new HashMap<>();
+	}
+
+	/**
+	 * Return the corresponding host.
+	 *
+	 * @return The corresponding host.
+	 */
+	public String getHost() {
+		return getService() + (getService().equals("s3") ? "-" : ".") + getRegion() + ".amazonaws.com";
 	}
 
 }

@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.auth;
+package org.ligoj.app.plugin.cognito.auth;
 
 import static org.apache.commons.lang3.StringUtils.LF;
 
@@ -15,6 +15,7 @@ import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.ligoj.bootstrap.core.resource.TechnicalException;
 
 /**
@@ -22,29 +23,27 @@ import org.ligoj.bootstrap.core.resource.TechnicalException;
  */
 public abstract class AWS4SignerBase {
 
-	protected static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 	protected static final String SCHEME = "AWS4";
 	protected static final String ALGORITHM = "HMAC-SHA256";
 	protected static final String TERMINATOR = "aws4_request";
 	private final URLCodec urlCodec = new URLCodec();
 
 	/**
-	 * Returns the canonical collection of header names that will be included in the
-	 * signature. For AWS4, all header names must be included in the process in
-	 * sorted canonicalized order.
-	 * 
+	 * Returns the canonical collection of header names that will be included in the signature. For AWS4, all header
+	 * names must be included in the process in sorted canonicalized order.
+	 *
 	 * @param headers Current headers.
 	 * @return Appended headers names only.
 	 */
-	protected String getCanonicalizeHeaderNames(final Map<String, String> headers) {
+	protected String getCanonicalizedHeaderNames(final Map<String, String> headers) {
 		return headers.keySet().stream().sorted(String.CASE_INSENSITIVE_ORDER).map(String::toLowerCase)
 				.collect(Collectors.joining(";"));
 	}
 
 	/**
-	 * Computes the canonical headers with values for the request. For AWS4, all
-	 * headers must be included in the signing process.
-	 * 
+	 * Computes the canonical headers with values for the request. For AWS4, all headers must be included in the signing
+	 * process.
+	 *
 	 * @param headers Current headers.
 	 * @return Appended headers names and values.
 	 */
@@ -62,15 +61,14 @@ public abstract class AWS4SignerBase {
 	}
 
 	/**
-	 * Returns the canonical request string to go into the signer process; this
-	 * consists of several canonical sub-parts.
-	 * 
+	 * Returns the canonical request string to go into the signer process; this consists of several canonical sub-parts.
+	 *
 	 * @param path        URL path.
 	 * @param method      The HTTP method.
 	 * @param parameters  The query parameters.
 	 * @param headerNames Canonicalized header names.
 	 * @param headers     Canonicalized header names and values.
-	 * @param bodyHash    Hash digest of the body..
+	 * @param bodyHash    Hash digest of the body.
 	 * @return The canonicalized string request without body.
 	 */
 	protected String getCanonicalRequest(final String path, final String method, final String parameters,
@@ -81,13 +79,13 @@ public abstract class AWS4SignerBase {
 
 	/**
 	 * Returns the canonicalized resource path for the service endpoint.
-	 * 
+	 *
 	 * @param path URL path.
 	 * @return The canonicalized URL request.
 	 */
 	protected String getCanonicalizedResourcePath(final String path) {
 		try {
-			return StringUtils.prependIfMissing(urlCodec.encode(StringUtils.trimToEmpty(path)).replace("%2F", "/"),
+			return Strings.CS.prependIfMissing(urlCodec.encode(StringUtils.trimToEmpty(path)).replace("%2F", "/"),
 					"/");
 		} catch (final EncoderException e) {
 			throw new TechnicalException("Error during resource path encoding", e);
@@ -95,15 +93,12 @@ public abstract class AWS4SignerBase {
 	}
 
 	/**
-	 * Examines the specified query string parameters and returns a canonicalized
-	 * form.
+	 * Examines the specified query string parameters and returns a canonicalized form.
 	 * <p>
-	 * The canonicalized query string is formed by first sorting all the query
-	 * string parameters, then URI encoding both the key and value and then joining
-	 * them, in order, separating key value pairs with an '&amp;'.
+	 * The canonicalized query string is formed by first sorting all the query string parameters, then URI encoding both
+	 * the key and value and then joining them, in order, separating key value pairs with an '&amp;'.
 	 *
 	 * @param parameters The query string parameters to be canonicalized.
-	 *
 	 * @return A canonicalized form for the specified query string parameters.
 	 */
 	public String getCanonicalizedQueryString(final Map<String, String> parameters) {
@@ -118,7 +113,7 @@ public abstract class AWS4SignerBase {
 
 	/**
 	 * return the string which must be signed
-	 * 
+	 *
 	 * @param dateTime         sign date
 	 * @param scope            scope
 	 * @param canonicalRequest canonical Request
@@ -130,7 +125,7 @@ public abstract class AWS4SignerBase {
 
 	/**
 	 * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
-	 * 
+	 *
 	 * @param text Text to hash.
 	 * @return Hashed text.
 	 */
@@ -141,7 +136,7 @@ public abstract class AWS4SignerBase {
 
 	/**
 	 * do a HMac sha256 sign
-	 * 
+	 *
 	 * @param stringData data as string
 	 * @param key        key
 	 * @return signature

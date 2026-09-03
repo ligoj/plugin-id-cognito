@@ -1,13 +1,14 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.auth;
+package org.ligoj.app.plugin.cognito.auth;
 
 import java.util.Collections;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.ligoj.app.plugin.id.cognito.auth.AWS4SignatureQuery.AWS4SignatureQueryBuilder;
+import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery;
+import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery.AWS4SignatureQueryBuilder;
 
 /**
  * Test class of {@link AWS4SignatureQuery}

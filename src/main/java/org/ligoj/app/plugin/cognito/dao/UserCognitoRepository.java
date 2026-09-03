@@ -1,35 +1,19 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.dao;
+package org.ligoj.app.plugin.cognito.dao;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import jodd.bean.BeanUtil;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.ligoj.app.iam.CompanyOrg;
-import org.ligoj.app.iam.GroupOrg;
-import org.ligoj.app.iam.ICompanyRepository;
-import org.ligoj.app.iam.IGroupRepository;
-import org.ligoj.app.iam.IUserRepository;
-import org.ligoj.app.iam.UserOrg;
+import org.ligoj.app.iam.*;
 import org.ligoj.app.iam.empty.EmptyCompanyRepository;
 import org.ligoj.app.iam.empty.EmptyGroupRepository;
-import org.ligoj.app.plugin.id.cognito.auth.AWS4SignatureQuery;
-import org.ligoj.app.plugin.id.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
+import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery;
+import org.ligoj.app.plugin.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
 import org.ligoj.app.plugin.id.model.LoginComparator;
 import org.ligoj.bootstrap.core.curl.CurlProcessor;
 import org.ligoj.bootstrap.core.curl.CurlRequest;
@@ -39,10 +23,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import jodd.bean.BeanUtil;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import java.net.URI;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * User Cognito repository
@@ -66,6 +51,7 @@ public class UserCognitoRepository implements IUserRepository {
 	public static final Comparator<UserOrg> DEFAULT_COMPARATOR = new LoginComparator();
 
 	private static final Map<String, BiFunction<UserOrg, String, Boolean>> SEARCH_MAPPER = new HashMap<>();
+
 	static {
 		SEARCH_MAPPER.put("mails", (u, v) -> u.getMails().contains(v));
 		SEARCH_MAPPER.put("mail", SEARCH_MAPPER.get("mails"));
@@ -74,7 +60,7 @@ public class UserCognitoRepository implements IUserRepository {
 	private final BeanUtil beanutils = BeanUtil.declaredSilent;
 
 	/**
-	 * Base DN for internal people. Should be a subset of people, so including {@link #peopleBaseDn}
+	 * Base DN for internal people. Should be a subset of people, so including {@link #getPeopleInternalBaseDn()}
 	 */
 	@Getter
 	private String peopleInternalBaseDn = "ou=internal,ou=people";
@@ -154,8 +140,6 @@ public class UserCognitoRepository implements IUserRepository {
 			if (curl.process(request)) {
 				return mapper.apply(objectMapper.readValue(request.getResponse(), clazz));
 			}
-		} catch (final IOException e) {
-			log.info("Unable to parse Cognito response {}", request.getResponse(), e);
 		}
 		return null;
 	}
@@ -202,7 +186,7 @@ public class UserCognitoRepository implements IUserRepository {
 	@Override
 	public Map<String, UserOrg> findAllNoCache(final Map<String, GroupOrg> groups) {
 		// Not yet implemented
-		return ObjectUtils.defaultIfNull(
+		return ObjectUtils.getIfNull(
 				newRequest("ListUsers", "{\"Limit\": 60,\"UserPoolId\": \"" + poolId + "\"}", CognitoListUsers.class,
 						l -> l.getUsers().stream().map(this::toUser)
 								.collect(Collectors.toMap(UserOrg::getId, Function.identity()))),
@@ -217,16 +201,16 @@ public class UserCognitoRepository implements IUserRepository {
 	/**
 	 * Build a {@link UserOrg} object. The key attributes are:
 	 * <ul>
-	 * <li>id : corresponds to the desired user name as displayed to user. It may be changed if this user is taken by
+	 * <li>id : corresponds to the desired username as displayed to user. It may be changed if this user is taken by
 	 * another user from another IAM provider.</li>
 	 * <li>localId : corresponds to the Cognito user identifier, a 128bit String, unique in the Cognito Pool.</li>
 	 * <li>company : corresponds to the Cognito pool name, not its identifier.</li>
 	 * </ul>
-	 * 
-	 * @see <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html">User
-	 *      pool attributes</a>
+	 *
 	 * @param entity The Cognito result.
 	 * @return The corresponding {@link UserOrg} object.
+	 * @see <a href="https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html">User
+	 * pool attributes</a>
 	 */
 	private UserOrg toUser(final AbstractCognitoUser entity) {
 		final var attr = entity.getAttributes().stream()
@@ -237,10 +221,10 @@ public class UserCognitoRepository implements IUserRepository {
 		user.setLastName(attr.get("family_name"));
 		user.setLocalId(entity.getUsername());
 		user.setId(StringUtils.lowerCase(
-				StringUtils.defaultString(attr.getOrDefault(attributeId, attr.get("email")), entity.getUsername())));
+				Objects.toString(attr.getOrDefault(attributeId, attr.get("email")), entity.getUsername())));
 		user.setCompany(poolName);
 		user.setSecured("true".equals(attr.get("email_verified")));
-		user.setLocked(entity.isEnabled() ? null : entity.getLastModifiedDate());
+		user.setLocked(entity.isEnabled() && entity.getLastModifiedDate() != null ? null : entity.getLastModifiedDate().toInstant());
 		user.setMails(Collections.singletonList(attr.get("email")));
 		return user;
 	}
@@ -264,8 +248,9 @@ public class UserCognitoRepository implements IUserRepository {
 	}
 
 	@Override
-	public void updateMembership(final Collection<String> groups, final UserOrg user) {
+	public UserUpdateResult updateMembership(final Collection<String> groups, final UserOrg user) {
 		// Not yet implemented
+		return null;
 	}
 
 	@Override
@@ -304,9 +289,12 @@ public class UserCognitoRepository implements IUserRepository {
 	}
 
 	@Override
-	public boolean authenticate(final String name, final String password) {
+	public UserOrg authenticate(final String name, final String password) {
 		// "name" corresponds to the Cognito's "Username" property
-		return StringUtils.isNotBlank(name) && StringUtils.isNotBlank(password) && findByIdNoCache(name) != null;
+		if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(password)) {
+			return findByIdNoCache(name);
+		}
+		return null;
 	}
 
 	@Override
@@ -338,7 +326,7 @@ public class UserCognitoRepository implements IUserRepository {
 
 	/**
 	 * Refresh and return the Cognito pool name from its identifier.
-	 * 
+	 *
 	 * @return The pool name.
 	 */
 	public String refreshPoolName() {

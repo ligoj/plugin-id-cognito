@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-package org.ligoj.app.plugin.id.cognito.resource;
+package org.ligoj.app.plugin.cognito.resource;
 
 import java.util.Map;
 
@@ -11,7 +11,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import org.ligoj.app.plugin.id.cognito.dao.UserCognitoRepository;
+import org.ligoj.app.plugin.cognito.dao.UserCognitoRepository;
 import org.ligoj.app.plugin.id.resource.AbstractPluginIdResource;
 import org.ligoj.app.plugin.id.resource.IdentityResource;
 import org.ligoj.bootstrap.core.SpringUtils;

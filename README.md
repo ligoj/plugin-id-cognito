@@ -13,4 +13,4 @@
 
 Requires [IAM Node plugin](https://github.com/ligoj/plugin-iam-node) to select this node as reference for authentication.
 
-Required IAM Poilicy looks like [this](src/main/resources/META-INF/resources/webjars/service/id/cognito/aws-policy.json)
+Required IAM Policy looks like [this](src/main/resources/META-INF/resources/webjars/service/id/cognito/aws-policy.json)
