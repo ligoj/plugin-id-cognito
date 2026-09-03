@@ -53,6 +53,10 @@ public class AWS4SignerCognitoForAuthorizationHeader extends AWS4SignerBase {
 		query.getHeaders().put("x-amz-date", dateTimeStamp);
 		query.getHeaders().put("x-amz-content-sha256", bodyHash);
 		query.getHeaders().put("Host", query.getHost());
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(query.getSessionToken())) {
+			// Temporary credentials (host-provided role): the token is part of the signed headers
+			query.getHeaders().put("x-amz-security-token", query.getSessionToken());
+		}
 
 		// Canonicalize the headers; we need the set of header names as well as
 		// the names and values to go into the signature process

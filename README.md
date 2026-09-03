@@ -14,3 +14,19 @@
 Requires [IAM Node plugin](https://github.com/ligoj/plugin-iam-node) to select this node as reference for authentication.
 
 Required IAM Policy looks like [this](src/main/resources/META-INF/resources/webjars/service/id/cognito/aws-policy.json)
+
+
+## Authentication to AWS
+
+The node parameters `service:id:cognito:access-key-id` and `service:id:cognito:secret-access-key` are optional.
+When either is empty, the plugin uses the **host-provided role** instead — no AWS SDK involved:
+
+1. ECS/Fargate task role, through the container credentials endpoint
+   (`AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` or `AWS_CONTAINER_CREDENTIALS_FULL_URI`, with optional
+   `AWS_CONTAINER_AUTHORIZATION_TOKEN[_FILE]`);
+2. EC2 instance profile, through IMDSv2 (token handshake).
+
+Temporary credentials are cached and refreshed 5 minutes before their expiration, and the session token is
+signed within each request (`x-amz-security-token`). The metadata endpoints are configurable for tests or
+non-standard environments: `service:id:cognito:ecs-credentials-url` (default `http://169.254.170.2`) and
+`service:id:cognito:imds-url` (default `http://169.254.169.254`).

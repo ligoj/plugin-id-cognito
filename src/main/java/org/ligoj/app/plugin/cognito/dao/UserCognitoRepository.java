@@ -13,6 +13,7 @@ import org.ligoj.app.iam.*;
 import org.ligoj.app.iam.empty.EmptyCompanyRepository;
 import org.ligoj.app.iam.empty.EmptyGroupRepository;
 import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery;
+import org.ligoj.app.plugin.cognito.auth.HostRoleCredentialsProvider;
 import org.ligoj.app.plugin.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
 import org.ligoj.app.plugin.id.model.LoginComparator;
 import org.ligoj.bootstrap.core.curl.CurlProcessor;
@@ -109,6 +110,13 @@ public class UserCognitoRepository implements IUserRepository {
 	@Autowired
 	private ObjectMapperTrim objectMapper;
 
+	/**
+	 * Host-provided role credentials, used when the node carries no static access/secret key.
+	 */
+	@Setter
+	@Autowired
+	private HostRoleCredentialsProvider hostRoleCredentialsProvider;
+
 	@Override
 	public UserOrg create(final UserOrg user) {
 		// Not yet implemented
@@ -157,7 +165,18 @@ public class UserCognitoRepository implements IUserRepository {
 		final var headers = new HashMap<String, String>();
 		headers.put("x-amz-target", "AWSCognitoIdentityProviderService." + action);
 		headers.put("Content-Type", "application/x-amz-json-1.1");
-		final var query = builder.accessKey(accessKey).secretKey(secretKey).region(region).path("/").headers(headers)
+		// Static node credentials, or the host-provided role (EC2 instance profile / ECS-Fargate task role)
+		var queryAccessKey = accessKey;
+		var querySecretKey = secretKey;
+		String querySessionToken = null;
+		if (StringUtils.isAnyBlank(accessKey, secretKey)) {
+			final var credentials = hostRoleCredentialsProvider.getCredentials();
+			queryAccessKey = credentials.accessKeyId();
+			querySecretKey = credentials.secretAccessKey();
+			querySessionToken = credentials.token();
+		}
+		final var query = builder.accessKey(queryAccessKey).secretKey(querySecretKey)
+				.sessionToken(querySessionToken).region(region).path("/").headers(headers)
 				.body(body).host(URI.create(url).getHost()).build();
 		final var authorization = signer.computeSignature(query);
 		final var request = new CurlRequest(query.getMethod(), url, query.getBody());

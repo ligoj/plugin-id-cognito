@@ -39,6 +39,21 @@ public class AWS4SignerCognitoForAuthorizationHeaderTest {
 	}
 
 	/**
+	 * Temporary credentials (host-provided role): the security token is added to the signed headers.
+	 */
+	@Test
+	void testComputeSignatureWithSessionToken() {
+		ReflectionTestUtils.setField(signer, "clock", Clock
+				.fixed(LocalDateTime.of(2017, 5, 29, 22, 15).toInstant(ZoneOffset.UTC), ZoneOffset.UTC.normalized()));
+		final var signatureQuery = AWS4SignatureQuery.builder().accessKey("awsAccessKey").secretKey("awsSecretKey")
+				.sessionToken("session-token").region("eu-west-1").method("GET").service("s3").path("path").build();
+		final var authorization = signer.computeSignature(signatureQuery);
+		Assertions.assertEquals("session-token", signatureQuery.getHeaders().get("x-amz-security-token"));
+		Assertions.assertTrue(authorization.contains("x-amz-security-token"),
+				"The security token must be part of the signed headers: " + authorization);
+	}
+
+	/**
 	 * Test method for
 	 * {@link AWS4SignerCognitoForAuthorizationHeader#computeSignature(AWS4SignatureQuery)}.
 	 */

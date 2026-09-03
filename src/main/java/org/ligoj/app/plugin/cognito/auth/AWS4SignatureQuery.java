@@ -49,6 +49,11 @@ public class AWS4SignatureQuery {
 	 */
 	private String secretKey;
 	/**
+	 * AWS session token, only for temporary credentials such as the ones provided by the EC2 instance profile or the
+	 * ECS/Fargate task role. Signed within the request as {@code x-amz-security-token} header.
+	 */
+	private String sessionToken;
+	/**
 	 * query headers
 	 */
 	private Map<String, String> headers;
