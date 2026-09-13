@@ -23,4 +23,10 @@ public class CognitoListUsers {
 
 	@JsonProperty("Users")
 	private List<CognitoUserFromList> users = new ArrayList<>();
+
+	/**
+	 * Token of the next page, <code>null</code> on the last one.
+	 */
+	@JsonProperty("PaginationToken")
+	private String paginationToken;
 }

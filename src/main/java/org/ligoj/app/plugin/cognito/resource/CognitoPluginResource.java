@@ -11,10 +11,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.plugin.cognito.dao.UserCognitoRepository;
 import org.ligoj.app.plugin.id.resource.AbstractPluginIdResource;
 import org.ligoj.app.plugin.id.resource.IdentityResource;
 import org.ligoj.bootstrap.core.SpringUtils;
+import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -84,6 +86,14 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	public static final String PARAMETER_ATTRIBUTE_ID = KEY + ":user-attribute-id";
 
 	/**
+	 * Default value of {@link #PARAMETER_ATTRIBUTE_ID}: the Cognito {@code sub}. In pre-authentication mode the
+	 * login is the principal forwarded by the proxy (ALB header {@code X-Amzn-Oidc-Identity}), which is this
+	 * {@code sub}, and {@link #accept(Authentication, String)} only takes such UUID principals. Keying the users by
+	 * the same value lets the session decoration and the identity cache resolve the authenticated user.
+	 */
+	public static final String DEFAULT_ATTRIBUTE_ID = "sub";
+
+	/**
 	 * Cognito pool identifier.
 	 */
 	public static final String PARAMETER_LOGIN = KEY + ":pool-id";
@@ -144,6 +154,15 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	 * @return The {@link UserCognitoRepository} instance. Cache is not involved.
 	 */
 	private UserCognitoRepository getUserRepository(final Map<String, String> parameters) {
+		// The mandatory parameters: a tool node, or an incomplete instance, must not break the sessions with an NPE
+		for (final var mandatory : new String[]{PARAMETER_REGION, PARAMETER_POOL_ID}) {
+			if (StringUtils.isBlank(parameters.get(mandatory))) {
+				log.error("Cognito node parameter '{}' is not defined: the node designated by 'feature:iam:node:primary'"
+						+ " must be a configured instance node, not the tool node", mandatory);
+				throw new ValidationJsonException(mandatory, "NotBlank");
+			}
+		}
+
 		// A new repository instance
 		final var repository = new UserCognitoRepository();
 		final var region = parameters.get(PARAMETER_REGION);
@@ -151,7 +170,7 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 		repository.setAccessKey(parameters.get(PARAMETER_ACCESS_KEY_ID));
 		repository.setSecretKey(parameters.get(PARAMETER_SECRET_ACCESS_KEY));
 		repository.setPoolId(parameters.get(PARAMETER_POOL_ID));
-		repository.setAttributeId(parameters.getOrDefault(PARAMETER_ATTRIBUTE_ID, "nickname"));
+		repository.setAttributeId(StringUtils.defaultIfBlank(parameters.get(PARAMETER_ATTRIBUTE_ID), DEFAULT_ATTRIBUTE_ID));
 		repository.setUrl(configuration.get(CONF_HOST, URL_COGNITO).replace("%s", region));
 
 		// Complete the bean

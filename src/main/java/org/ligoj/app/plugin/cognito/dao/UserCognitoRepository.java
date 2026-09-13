@@ -4,17 +4,17 @@
 package org.ligoj.app.plugin.cognito.dao;
 
 import jodd.bean.BeanUtil;
+import tools.jackson.core.JacksonException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ligoj.app.iam.*;
-import org.ligoj.app.iam.empty.EmptyCompanyRepository;
 import org.ligoj.app.iam.empty.EmptyGroupRepository;
 import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery;
 import org.ligoj.app.plugin.cognito.auth.HostRoleCredentialsProvider;
 import org.ligoj.app.plugin.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
+import org.ligoj.app.plugin.id.dao.AbstractMemCacheRepository.CacheDataType;
 import org.ligoj.app.plugin.id.model.LoginComparator;
 import org.ligoj.bootstrap.core.curl.CurlProcessor;
 import org.ligoj.bootstrap.core.curl.CurlRequest;
@@ -42,9 +42,25 @@ public class UserCognitoRepository implements IUserRepository {
 	private static final IGroupRepository GROUP_REPOSITORY = new EmptyGroupRepository();
 
 	/**
+	 * Maximum users returned by one ListUsers call (Cognito limit).
+	 */
+	private static final int LIST_USERS_LIMIT = 60;
+
+	/**
 	 * Default {@link ICompanyRepository}.
 	 */
-	private static final ICompanyRepository COMPANY_REPOSITORY = new EmptyCompanyRepository();
+	/**
+	 * The pool as the single company, built once the pool name is known.
+	 */
+	private ICompanyRepository companyRepository;
+
+	/**
+	 * Shared identity cache, fed from the pool.
+	 */
+	@Getter
+	@Setter
+	@Autowired
+	private CacheCognitoRepository cacheRepository;
 
 	/**
 	 * User comparator for ordering
@@ -148,6 +164,9 @@ public class UserCognitoRepository implements IUserRepository {
 			if (curl.process(request)) {
 				return mapper.apply(objectMapper.readValue(request.getResponse(), clazz));
 			}
+		} catch (final JacksonException je) {
+			// Not a JSON payload of the expected shape: same as a failed request
+			log.warn("Unexpected Cognito response for action {}: {}", action, je.getMessage());
 		}
 		return null;
 	}
@@ -197,19 +216,39 @@ public class UserCognitoRepository implements IUserRepository {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Map<String, UserOrg> findAll() {
-		// Not yet implemented
-		return findAllNoCache(null);
+		return (Map<String, UserOrg>) cacheRepository.getData().get(CacheDataType.USER);
 	}
 
+	/**
+	 * List every user of the pool, following the pagination tokens: ListUsers answers at most
+	 * {@value #LIST_USERS_LIMIT} users per call.
+	 */
 	@Override
 	public Map<String, UserOrg> findAllNoCache(final Map<String, GroupOrg> groups) {
-		// Not yet implemented
-		return ObjectUtils.getIfNull(
-				newRequest("ListUsers", "{\"Limit\": 60,\"UserPoolId\": \"" + poolId + "\"}", CognitoListUsers.class,
-						l -> l.getUsers().stream().map(this::toUser)
-								.collect(Collectors.toMap(UserOrg::getId, Function.identity()))),
-				Collections.emptyMap());
+		final var result = new HashMap<String, UserOrg>();
+		String token = null;
+		do {
+			final var body = "{\"Limit\": " + LIST_USERS_LIMIT + ",\"UserPoolId\": \"" + poolId + "\""
+					+ (token == null ? "" : ", \"PaginationToken\": \"" + token + "\"") + "}";
+			final var page = newRequest("ListUsers", body, CognitoListUsers.class, Function.identity());
+			if (page == null) {
+				break;
+			}
+			page.getUsers().stream().map(this::toUser).forEach(u -> result.put(u.getId(), u));
+			token = StringUtils.trimToNull(page.getPaginationToken());
+		} while (token != null);
+		return result;
+	}
+
+	/**
+	 * The user pool as a company: DN {@code pool=<poolId>}, named after the pool.
+	 *
+	 * @return A new company instance of the pool.
+	 */
+	CompanyOrg newPoolCompany() {
+		return new CompanyOrg("pool=" + poolId, poolName);
 	}
 
 	@Override
@@ -241,10 +280,15 @@ public class UserCognitoRepository implements IUserRepository {
 		user.setLocalId(entity.getUsername());
 		user.setId(StringUtils.lowerCase(
 				Objects.toString(attr.getOrDefault(attributeId, attr.get("email")), entity.getUsername())));
-		user.setCompany(poolName);
+		user.setCompany(newPoolCompany().getId());
+		user.setGroups(new ArrayList<>());
 		user.setSecured("true".equals(attr.get("email_verified")));
 		user.setLocked(entity.isEnabled() && entity.getLastModifiedDate() != null ? null : entity.getLastModifiedDate().toInstant());
 		user.setMails(Collections.singletonList(attr.get("email")));
+		// Every Cognito attribute ("sub", "preferred_username", "nickname", "custom:*", ...) is exposed as a custom
+		// attribute: "service:id:user-display" (or "service:id:visual-id-name") may name one of them, and the UI
+		// falls back to the login when a user has no such attribute.
+		user.setCustomAttributes(new HashMap<>(attr));
 		return user;
 	}
 
@@ -339,8 +383,10 @@ public class UserCognitoRepository implements IUserRepository {
 
 	@Override
 	public ICompanyRepository getCompanyRepository() {
-		// Not yet implemented
-		return COMPANY_REPOSITORY;
+		if (companyRepository == null) {
+			companyRepository = new CompanyCognitoRepository(this);
+		}
+		return companyRepository;
 	}
 
 	/**

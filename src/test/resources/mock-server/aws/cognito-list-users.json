@@ -20,6 +20,10 @@
                     "Value": "john"
                 }, 
                 {
+                    "Name": "preferred_username", 
+                    "Value": "johnny"
+                }, 
+                {
                     "Name": "email", 
                     "Value": "john.doe@sample.com"
                 }

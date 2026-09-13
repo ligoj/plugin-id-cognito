@@ -111,6 +111,9 @@ public class HostRoleCredentialsProvider {
 		final var relativeUri = getEnv("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
 		final var fullUri = getEnv("AWS_CONTAINER_CREDENTIALS_FULL_URI");
 		if (StringUtils.isAllBlank(relativeUri, fullUri)) {
+			log.warn("No ECS/Fargate container credentials: neither AWS_CONTAINER_CREDENTIALS_RELATIVE_URI nor"
+					+ " AWS_CONTAINER_CREDENTIALS_FULL_URI is set in the environment of the API process. On ECS, these"
+					+ " variables are injected only when the task definition declares a task role (taskRoleArn)");
 			return null;
 		}
 		final var url = StringUtils.isNotBlank(relativeUri)
@@ -121,7 +124,11 @@ public class HostRoleCredentialsProvider {
 		if (token != null) {
 			request.getHeaders().put("Authorization", token);
 		}
-		return parse(execute(request));
+		final var credentials = parse(execute(request));
+		if (credentials == null) {
+			log.warn("ECS/Fargate container credentials endpoint {} did not provide credentials", url);
+		}
+		return credentials;
 	}
 
 	/**
@@ -152,6 +159,7 @@ public class HostRoleCredentialsProvider {
 		tokenRequest.getHeaders().put("X-aws-ec2-metadata-token-ttl-seconds", "21600");
 		final var token = execute(tokenRequest);
 		if (token == null) {
+			log.warn("EC2 instance metadata (IMDSv2) is not reachable at {}", base);
 			return null;
 		}
 		final var roleBase = base + "/latest/meta-data/iam/security-credentials/";

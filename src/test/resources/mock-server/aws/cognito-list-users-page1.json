@@ -1,0 +1,34 @@
+{
+    "Users": [
+        {
+            "Username": "00000000-0000-0000-0000-00000000",
+            "Enabled": true,
+            "UserStatus": "CONFIRMED",
+            "UserCreateDate": 1555068001.241,
+            "UserLastModifiedDate": 1555071906.132,
+            "Attributes": [
+                {
+                    "Name": "sub",
+                    "Value": "00000000-0000-0000-0000-00000000"
+                },
+                {
+                    "Name": "email_verified",
+                    "Value": "true"
+                },
+                {
+                    "Name": "nickname",
+                    "Value": "john"
+                },
+                {
+                    "Name": "preferred_username",
+                    "Value": "johnny"
+                },
+                {
+                    "Name": "email",
+                    "Value": "john.doe@sample.com"
+                }
+            ]
+        }
+    ],
+    "PaginationToken": "next-page"
+}

@@ -7,6 +7,7 @@
             "Action": [
                 "cognito-idp:DescribeUserPool",
                 "cognito-idp:GetGroup",
+                "cognito-idp:ListUsers",
                 "cognito-idp:AdminGetUser"
             ],
             "Resource": "arn:aws:cognito-idp:REGION:ACCOUNT:userpool/POOL_ID"
