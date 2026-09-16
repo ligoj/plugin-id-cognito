@@ -15,6 +15,7 @@ import org.ligoj.app.plugin.cognito.auth.AWS4SignatureQuery;
 import org.ligoj.app.plugin.cognito.auth.HostRoleCredentialsProvider;
 import org.ligoj.app.plugin.cognito.auth.AWS4SignerCognitoForAuthorizationHeader;
 import org.ligoj.app.plugin.id.dao.AbstractMemCacheRepository.CacheDataType;
+import org.ligoj.app.plugin.id.dao.UserCriteria;
 import org.ligoj.app.plugin.id.model.LoginComparator;
 import org.ligoj.bootstrap.core.curl.CurlProcessor;
 import org.ligoj.bootstrap.core.curl.CurlRequest;
@@ -306,8 +307,16 @@ public class UserCognitoRepository implements IUserRepository {
 	@Override
 	public Page<UserOrg> findAll(final Collection<GroupOrg> requiredGroups, final Set<String> companies,
 			final String criteria, final Pageable pageable) {
-		// Not yet implemented
-		return new PageImpl<>(new ArrayList<>(findAll().values()));
+		// No group in a pool: only the free-text criterion applies (login, names, mail, custom attributes such as
+		// "preferred_username"), then the requested page, sorted by login
+		final var matching = findAll().values().stream().filter(u -> UserCriteria.matches(u, criteria))
+				.sorted(DEFAULT_COMPARATOR).toList();
+		if (pageable == null || pageable.isUnpaged()) {
+			return new PageImpl<>(matching);
+		}
+		final var from = (int) Math.min(pageable.getOffset(), matching.size());
+		final var to = Math.min(from + pageable.getPageSize(), matching.size());
+		return new PageImpl<>(matching.subList(from, to), pageable, matching.size());
 	}
 
 	@Override

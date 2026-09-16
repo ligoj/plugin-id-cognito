@@ -271,6 +271,25 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		Assertions.assertNull(userOrg.getLocked());
 	}
 
+	/**
+	 * The user lookup honors the free-text criterion (login, names, mail, custom attributes such as
+	 * {@code preferred_username}) and the requested page.
+	 */
+	@Test
+	public void findAllCriteriaAndPage() throws IOException {
+		final var repository = mockAws().getConfiguration("service:id:cognito:test").getUserRepository();
+		final var johnny = repository.findAll(null, null, "JOHNNY", PageRequest.of(0, 10));
+		Assertions.assertEquals(1, johnny.getTotalElements());
+		Assertions.assertEquals("00000000-0000-0000-0000-00000000", johnny.getContent().getFirst().getId());
+		Assertions.assertEquals(1, repository.findAll(null, null, "jane.doe@", PageRequest.of(0, 10)).getTotalElements());
+		Assertions.assertEquals(0, repository.findAll(null, null, "nobody", PageRequest.of(0, 10)).getTotalElements());
+		// Pagination: one user per page, sorted by login
+		final var page = repository.findAll(null, null, null, PageRequest.of(1, 1));
+		Assertions.assertEquals(2, page.getTotalElements());
+		Assertions.assertEquals(1, page.getContent().size());
+		Assertions.assertEquals("00000000-0000-0000-0000-00000001", page.getContent().getFirst().getId());
+	}
+
 	@Test
 	public void toDn() throws IOException {
 		final var repository = mockAws("cognito-describe-user-pool.json", "cognito-admin-get-user.json")
