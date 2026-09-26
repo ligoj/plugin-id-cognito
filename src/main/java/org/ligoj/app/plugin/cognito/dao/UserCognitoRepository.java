@@ -48,9 +48,6 @@ public class UserCognitoRepository implements IUserRepository {
 	private static final int LIST_USERS_LIMIT = 60;
 
 	/**
-	 * Default {@link ICompanyRepository}.
-	 */
-	/**
 	 * The pool as the single company, built once the pool name is known.
 	 */
 	private ICompanyRepository companyRepository;

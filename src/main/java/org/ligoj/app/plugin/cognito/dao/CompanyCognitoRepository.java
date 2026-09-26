@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.ligoj.app.iam.CompanyOrg;
 import org.ligoj.app.iam.ICompanyRepository;
 import org.ligoj.app.plugin.id.dao.AbstractMemCacheRepository.CacheDataType;
@@ -46,7 +47,7 @@ public class CompanyCognitoRepository implements ICompanyRepository {
 	public Page<CompanyOrg> findAll(final Set<CompanyOrg> companies, final String criteria, final Pageable pageable,
 			final Map<String, Comparator<CompanyOrg>> customComparators) {
 		final var matching = findAll().values().stream()
-				.filter(c -> StringUtils.isBlank(criteria) || StringUtils.containsIgnoreCase(c.getName(), criteria))
+				.filter(c -> StringUtils.isBlank(criteria) || Strings.CI.contains(c.getName(), criteria))
 				.toList();
 		return new PageImpl<>(matching, pageable, matching.size());
 	}
