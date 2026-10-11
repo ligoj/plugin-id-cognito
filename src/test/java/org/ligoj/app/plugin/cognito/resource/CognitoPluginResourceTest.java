@@ -106,6 +106,44 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 				.checkStatus("service:id:cognito:test", parameters));
 	}
 
+	private Map<String, String> checkParameters() {
+		final var parameters = new HashMap<String, String>();
+		parameters.put(CognitoPluginResource.PARAMETER_ACCESS_KEY_ID, "12345678901234567890");
+		parameters.put(CognitoPluginResource.PARAMETER_SECRET_ACCESS_KEY, "secret_secret_secret");
+		parameters.put(CognitoPluginResource.PARAMETER_POOL_ID, "eu-west-1_12345678");
+		parameters.put(CognitoPluginResource.PARAMETER_REGION, "eu-west-1");
+		return parameters;
+	}
+
+	@Test
+	void checkConnectionNewNode() throws IOException {
+		// Only the given parameters: the new node has no stored configuration, reading it would refuse the missing region
+		Assertions.assertTrue(mockAws("cognito-describe-user-pool.json").checkConnection("service:id:cognito:new", checkParameters()));
+	}
+
+	@Test
+	void checkConnectionMissingRegion() throws IOException {
+		final var parameters = new HashMap<String, String>();
+		parameters.put(CognitoPluginResource.PARAMETER_POOL_ID, "eu-west-1_12345678");
+		final var resource = mockAws("cognito-describe-user-pool.json");
+		org.ligoj.bootstrap.MatcherUtil.assertThrows(Assertions.assertThrows(ValidationJsonException.class,
+				() -> resource.checkConnection("service:id:cognito:test", parameters)), CognitoPluginResource.PARAMETER_REGION, "NotBlank");
+	}
+
+	@Test
+	void checkConnectionThroughApi() throws Exception {
+		// Built against an API without this feature, the method overrides the API's one when it exists
+		final var method = java.util.Arrays.stream(org.ligoj.app.api.ToolPlugin.class.getMethods())
+				.filter(m -> "checkConnection".equals(m.getName())).findFirst();
+		org.junit.jupiter.api.Assumptions.assumeTrue(method.isPresent(), "API without the connection check");
+		final var parameters = checkParameters();
+		parameters.remove(CognitoPluginResource.PARAMETER_REGION);
+		final var resource = mockAws("cognito-describe-user-pool.json");
+		final var e = Assertions.assertThrows(java.lang.reflect.InvocationTargetException.class,
+				() -> method.get().invoke(resource, "service:id:cognito:test", parameters));
+		Assertions.assertInstanceOf(ValidationJsonException.class, e.getCause());
+	}
+
 	/**
 	 * A node without the mandatory parameters (the tool node itself, or an incomplete instance) is refused with a
 	 * validation error naming the parameter, instead of a NullPointerException breaking every session.

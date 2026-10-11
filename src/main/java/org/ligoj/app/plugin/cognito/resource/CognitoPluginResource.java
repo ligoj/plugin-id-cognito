@@ -134,6 +134,20 @@ public class CognitoPluginResource extends AbstractPluginIdResource<UserCognitoR
 	}
 
 	/**
+	 * Check the connection of a node configuration before it is saved. Overrides <code>ToolPlugin#checkConnection</code>
+	 * of an API having the connection check, without <code>@Override</code>: this plug-in still builds and runs on an
+	 * older API, which never calls it.
+	 *
+	 * @param node       The node identifier, it may not exist yet.
+	 * @param parameters The parameter values the node would have once saved.
+	 * @return <code>true</code> when Cognito describes the given pool.
+	 */
+	public boolean checkConnection(final String node, final Map<String, String> parameters) {
+		// The given parameters only: the configuration of this node is neither read nor cached
+		return getUserRepository(parameters).refreshPoolName() != null;
+	}
+
+	/**
 	 * Build a user Cognito repository from the given node.
 	 *
 	 * @param node The node to request.
