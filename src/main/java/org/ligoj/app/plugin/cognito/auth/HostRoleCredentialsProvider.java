@@ -22,7 +22,7 @@ import java.time.Instant;
  * Host-provided AWS role credentials, used when the node has no static access/secret key: the ECS/Fargate task role
  * (container credentials endpoint) is tried first, then the EC2 instance profile (IMDSv2). No AWS SDK involved — both
  * endpoints are plain HTTP + JSON, fetched with the stack's own {@link CurlProcessor}.
- *
+ * <p>
  * Credentials are cached and refreshed ahead of their expiration. Endpoints are configurable (tests, exotic
  * environments) through {@link ConfigurationResource}:
  * <ul>
