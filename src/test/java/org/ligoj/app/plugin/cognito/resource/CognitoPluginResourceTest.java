@@ -3,22 +3,9 @@
  */
 package org.ligoj.app.plugin.cognito.resource;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import jakarta.transaction.Transactional;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
@@ -26,14 +13,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.ligoj.app.AbstractServerTest;
+import org.ligoj.app.iam.dao.CacheCompanyRepository;
+import org.ligoj.app.iam.dao.CacheUserRepository;
 import org.ligoj.app.model.Node;
 import org.ligoj.app.model.Parameter;
 import org.ligoj.app.model.ParameterValue;
-import org.ligoj.app.plugin.cognito.resource.CognitoPluginResource;
 import org.ligoj.bootstrap.core.validation.ValidationJsonException;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,11 +30,11 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import org.ligoj.app.iam.dao.CacheCompanyRepository;
-import org.ligoj.app.iam.dao.CacheUserRepository;
-import org.springframework.data.domain.PageRequest;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 /**
  * Test class of {@link CognitoPluginResource}
@@ -242,7 +231,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
 		Assertions.assertEquals("john", userOrg.getFirstName());
-		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().getFirst());
 		Assertions.assertNull(users.get("john"));
 	}
 
@@ -276,7 +265,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("john", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
 		Assertions.assertEquals("john", userOrg.getFirstName());
-		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().getFirst());
 	}
 
 	@Test
@@ -292,7 +281,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("john.doe@sample.com", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
 		Assertions.assertEquals("john", userOrg.getFirstName());
-		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().getFirst());
 	}
 
 	@Test
@@ -305,7 +294,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000000", userOrg.getLocalId());
 		Assertions.assertEquals("john", userOrg.getFirstName());
-		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().get(0));
+		Assertions.assertEquals("john.doe@sample.com", userOrg.getMails().getFirst());
 		Assertions.assertNull(userOrg.getLocked());
 	}
 
@@ -362,7 +351,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	public void findAllByMail() throws IOException {
 		final var users = mockAws().getConfiguration("service:id:cognito:test").getUserRepository().findAllBy("mail",
 				"jane.doe@sample.com");
-		final var userOrg = users.get(0);
+		final var userOrg = users.getFirst();
 		Assertions.assertEquals("00000000-0000-0000-0000-00000001", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000001", userOrg.getLocalId());
 		Assertions.assertNotNull(userOrg.getLocked());
@@ -379,7 +368,7 @@ public class CognitoPluginResourceTest extends AbstractServerTest {
 	public void findAllBy() throws IOException {
 		final var users = mockAws().getConfiguration("service:id:cognito:test").getUserRepository()
 				.findAllBy("firstName", "jane");
-		final var userOrg = users.get(0);
+		final var userOrg = users.getFirst();
 		Assertions.assertEquals("00000000-0000-0000-0000-00000001", userOrg.getId());
 		Assertions.assertEquals("00000000-0000-0000-0000-00000001", userOrg.getLocalId());
 	}

@@ -21,7 +21,7 @@ import lombok.Setter;
 public abstract class AbstractCognitoUser {
 
 	/**
-	 * User name: "976c1ce8-fb71-461a-8c06-e7e063cf8a1f"
+	 * Username: "976c1ce8-fb71-461a-8c06-e7e063cf8a1f"
 	 */
 	@JsonProperty("Username")
 	private String username;
